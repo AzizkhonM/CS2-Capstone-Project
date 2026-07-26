@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.venv/
+venv/
+
+# Data (raw data not committed — see data/README.md for source)
+data/*.csv
+!data/README.md
+
+# Models / artifacts
+models/*.pkl
+models/*.json
+mlruns/
+
+# Secrets
+.env
+
+# OS
+.DS_Store
