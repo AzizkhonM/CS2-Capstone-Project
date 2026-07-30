@@ -59,23 +59,38 @@ _Detailed comparison to be added after `04_model_training.ipynb` is run._
 
 ## Final model and justification
 
-_To be completed after model comparison (Phase 8–9). Expected: XGBoost,
-selected if it outperforms Logistic Regression and the Elo-only baseline
-on held-out AUC/accuracy — see Acceptance Criteria in `docs/Project_Brief.md`._
+Logistic Regression was selected as the final model. On a temporal (time-based) held-out test split, it achieved Accuracy 0.759, AUC 0.841, and Brier score 0.161 — marginally outperforming a hyperparameter-tuned XGBoost (best: Accuracy 0.752, AUC 0.840, Brier 0.162) across all metrics, while remaining simpler and more interpretable (see coefficient analysis in `notebooks/04_model_training.ipynb`). Both substantially outperformed the Elo-only baseline.
 
 ## Evaluation metrics and results
 
 **Metrics:** Accuracy and ROC-AUC on a temporal (time-based) train/test
-split — not random split, to avoid look-ahead bias.
+split — not random split, to avoid look-ahead bias. Additionally,
+calibration (Brier score) and prediction symmetry are checked as
+robustness measures (see `docs/Project_Brief.md`, Section 12).
 
-| Model               | Accuracy | AUC     |
-| ------------------- | -------- | ------- |
-| Elo-only baseline   | _TBD_  | _TBD_ |
-| Logistic Regression | _TBD_  | _TBD_ |
-| XGBoost             | _TBD_  | _TBD_ |
+| Model               | Accuracy         | AUC              | Brier score      |
+| ------------------- | ---------------- | ---------------- | ---------------- |
+| Elo-only baseline   | 0.6033           | 0.6277           | 0.2368           |
+| Logistic Regression | **0.7591** | **0.8409** | **0.1612** |
+| XGBoost             | 0.7520           | 0.8387           | 0.1622           |
+
+**Additional robustness checks (Phase 9):**
+
+- Calibration: reliability diagram comparing predicted probability vs
+  observed win rate.
+- Symmetry: P(A beats B) + P(B beats A) should ≈ 1 for a sample of
+  team pairs, tested in both input orders.
+- New/sparse-history teams: model output evaluated separately for teams
+  with few or no historical matches.
 
 _Results to be filled in after `05_evaluation.ipynb` is run. See `results/`
 for plots and error analysis once available._
+
+## Implementation notes (found during model training)
+
+* `winner_*`/`loser_*` dataset columns are named relative to the actual match outcome and are leakage-prone if used directly as features; they were reframed to `team1_*`/`team2_*` before training (see `04_model_training.ipynb`).
+* `totalwinrate` and `totallossrate` are perfectly collinear; `totallossrate_diff` was dropped from the final 20-feature set.
+* Elo sanity check confirmed correct behavior: mean `elo_diff` was +32.4 when team1 won vs -8.97 when team1 lost.
 
 ## Installation instructions
 
@@ -96,14 +111,14 @@ Run the notebooks in order (each saves its output for the next step):
 notebooks/01_eda.ipynb
 notebooks/02_preprocessing.ipynb   → data/cleaned_matches.csv
 notebooks/03_baseline_elo.ipynb    → models/elo_ratings.csv
-notebooks/04_model_training.ipynb  → models/xgb_model.pkl (MLflow-logged)
+notebooks/04_model_training.ipynb  → models/logreg_model.pkl (MLflow-logged)
 notebooks/05_evaluation.ipynb      → results/
 ```
 
 ## Demo and inference run instructions
 
 **Colab-first:** open `notebooks/06_demo.ipynb` in Google Colab (badge/link
-to be added), run all cells. It loads `models/xgb_model.pkl` and
+to be added), run all cells. It loads `models/logreg_model.pkl` and
 `models/elo_ratings.csv`, then accepts N team names and returns a seeded
 bracket.
 
@@ -144,10 +159,18 @@ Bracket:
   career averages and are excluded from modeling — see `data/README.md`.
 - Team-name resolution relies on fuzzy matching; ambiguous/unmatched
   names fall back to a default Elo (1500).
-- Teams with sparse match history produce less reliable estimates.
+- Teams with sparse match history produce less reliable estimates; this
+  has not yet been empirically validated and will be explicitly tested
+  (Phase 9) rather than only assumed.
 - Roster changes are not explicitly tracked (static player stats are
   excluded), so Elo may not reflect a team's current lineup if a major
   roster change occurred shortly before the tournament.
+- Predicted probabilities are not guaranteed to be well-calibrated
+  out of the box; calibration will be checked (reliability diagram /
+  Brier score) before probabilities are relied on for seeding.
+- Prediction symmetry (P(A beats B) + P(B beats A) ≈ 1) is not
+  guaranteed by model construction and will be explicitly tested and
+  corrected if violated.
 - Scope is limited to a static, publicly available historical dataset —
   no real-time HLTV integration.
 
@@ -189,7 +212,7 @@ authority for seeding disputes.
 
 ## Trained model
 
-The trained model (`models/xgb_model.pkl`) and computed Elo ratings
+The trained model (`models/logreg_model.pkl`) and computed Elo ratings
 (`models/elo_ratings.csv`) are not committed to this repository — see
 `.gitignore`. Regenerate them by running the notebooks in order
 (01 → 05), or download pre-trained artifacts from [link, if hosted].

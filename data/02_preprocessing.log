@@ -1,0 +1,13 @@
+2026-07-30 11:01:30,521 - NumExpr defaulting to 2 threads.
+2026-07-30 11:01:31,097 - Starting shape: (7033, 140)
+2026-07-30 11:01:31,189 - Case A (bo1 fix + score normalize): 965 rows
+2026-07-30 11:01:31,189 - Case C (bo1 fix via decider_map): 1 rows
+2026-07-30 11:01:31,189 - Forfeit/unknown dropped: 44 rows
+2026-07-30 11:01:31,190 - Shape after bo1/bo3 fix: (6989, 140)
+2026-07-30 11:01:31,281 - Dropped 85 static/unusable columns
+2026-07-30 11:01:31,282 - Shape after column drop: (6989, 55)
+2026-07-30 11:01:31,299 - Total unique team names: 331
+2026-07-30 11:01:31,301 - Manually reviewed for aliases/duplicates (e.g. NAVI/Natus Vincere, FaZe/FaZe Clan) — none found
+2026-07-30 11:01:31,332 - Sorted chronologically by date
+2026-07-30 11:01:32,942 - Final shape: (6989, 55)
+2026-07-30 11:01:32,943 - Saved to data/cleaned_matches.csv

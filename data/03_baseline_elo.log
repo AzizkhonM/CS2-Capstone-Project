@@ -1,0 +1,8 @@
+2026-07-30 12:49:19,956 - NumExpr defaulting to 2 threads.
+2026-07-30 12:49:20,129 - Loaded cleaned_matches.csv, shape: (6989, 55)
+2026-07-30 12:49:20,437 - Computed Elo for 331 unique teams over 6989 matches
+2026-07-30 12:49:20,465 - Mean elo_diff (team1 won): 32.37
+2026-07-30 12:49:20,466 - Mean elo_diff (team1 lost): -8.97
+2026-07-30 12:49:20,474 - Final Elo range: 1285.6 - 1948.7
+2026-07-30 12:49:20,703 - Saved matches_with_elo.csv, shape: (6989, 59)
+2026-07-30 12:49:20,705 - Saved elo_ratings.csv, 331 teams

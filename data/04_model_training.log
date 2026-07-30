@@ -1,0 +1,11 @@
+2026-07-30 14:55:48,681 - Loaded matches_with_elo.csv, shape: (6989, 59)
+2026-07-30 14:55:48,759 - Reframed 12 winner/loser column pairs to team1/team2
+2026-07-30 14:55:48,868 - Final features (20): ['elo_diff', 'past3_diff', 'head2head_percentage_diff', 'head2head_freq_diff', 'mirage_diff', 'inferno_diff', 'nuke_diff', 'dust2_diff', 'overpass_diff', 'train_diff', 'ancient_diff', 'vertigo_diff', 'anubis_diff', 'wins_diff', 'losses_diff', 'totalwinrate_diff', 'online_winrate_diff', 'lan_winrate_diff', 'overall_winrate_diff', 'event_type_lan']
+2026-07-30 14:55:48,917 - Temporal split at 2025-09-04 13:30:00+00:00 | Train: (5590, 20) | Test: (1399, 20)
+2026-07-30 14:55:59,278 - LogReg — Accuracy: 0.7591, AUC: 0.8409, Brier: 0.1612
+2026-07-30 14:56:04,281 - [0] CV AUC: 0.7780±0.0581 | Test AUC: 0.8376 | Acc: 0.7448 | Brier: 0.1630
+2026-07-30 14:56:28,478 - [1] CV AUC: 0.7725±0.0604 | Test AUC: 0.8360 | Acc: 0.7477 | Brier: 0.1642
+2026-07-30 14:56:40,103 - [2] CV AUC: 0.7604±0.0639 | Test AUC: 0.8359 | Acc: 0.7520 | Brier: 0.1643
+2026-07-30 14:56:42,662 - [3] CV AUC: 0.7730±0.0604 | Test AUC: 0.8387 | Acc: 0.7520 | Brier: 0.1622
+2026-07-30 14:56:42,694 - Elo-only — Accuracy: 0.6033, AUC: 0.6277, Brier: 0.2368
+2026-07-30 14:56:42,714 - Saved logreg_model.pkl and feature_list.pkl

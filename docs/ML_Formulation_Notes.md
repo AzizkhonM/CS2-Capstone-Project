@@ -28,9 +28,9 @@ This is the model's **only learned task**. Everything else is just a different a
 
 ## 3. Two use cases for one model
 
-| # | Use case | Description |
-|---|---|---|
-| 1 | **Match prediction** | Called directly for a single specific pairing: "A vs B — who wins?" |
+| # | Use case                                   | Description                                                                                                                                                                                                                          |
+| - | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1 | **Match prediction**                 | Called directly for a single specific pairing: "A vs B — who wins?"                                                                                                                                                                 |
 | 2 | **Seeding** (main practical benefit) | The model is run for all possible pairs among N teams (C(N,2)) → results are aggregated (Bradley-Terry method) → an overall Power Score → seed order → paired according to the standard bracket rule (`seed_i vs seed(N+1-i)`) |
 
 **Important:** Seeding itself is not ML — it's a **post-processing** stage (combinatorics + sorting) that processes the model's output.
@@ -48,10 +48,12 @@ This is the model's **only learned task**. Everything else is just a different a
 ## 5. Preliminary feature list (X)
 
 ### We calculate ourselves:
+
 - `elo_diff` — the Elo score difference between the two teams (overall)
 - `elo_diff_lan` / `elo_diff_online` — context-dependent Elo difference (optional)
 
 ### Already available in the dataset, confirmed dynamic (used directly):
+
 - `winner_past3` / `loser_past3` — form over the last 3 games
 - `winner_head2head_percentage`, `winner_head2head_freq` — head-to-head history
 - per-map win rate (`winner_mirage`, `winner_inferno`, ...)
@@ -59,22 +61,28 @@ This is the model's **only learned task**. Everything else is just a different a
 - `team1/2_wins`, `losses`, `totalwinrate`, `totallossrate`
 - `event_type` (LAN/Online, normalized)
 
+> **⚠️ Important implementation note:** the `winner_*`/`loser_*` columns above are named relative to the match outcome, not to team1/team2. Before use, each must be reframed as `team1_X`/`team2_X` (based on actual winner), then converted to a single `X_diff = team1_X - team2_X` feature. Final feature count after reframing + diffing: **20** (one column, `totallossrate_diff`, was dropped due to perfect collinearity with `totalwinrate_diff`).
+
 ### Not used (confirmed STATIC):
+
 - `avg_RATING`, `avg_DPR`, `avg_KAST`, `avg_ADR`, `avg_KPR` (at both team and player level)
 - `rating_std`, `top_player`, `weakest_player`
 
 ## Target (y):
+
 - `winner` (team1 / team2 → encoded as 0/1)
 
 ---
 
 ## 6. Baseline vs Main model
 
-| | Baseline | Main model |
-|---|---|---|
-| What | Elo only (or a 50/50 guess) | Supervised classifier (Logistic Regression / XGBoost) |
-| Purpose | Reference point — "how accurate we'd be if we learned nothing" | A genuinely trained, evaluable model |
-| Input | Only elo_diff | All features (section 5) |
+|         | Baseline                                                        | Main model                                            |
+| ------- | --------------------------------------------------------------- | ----------------------------------------------------- |
+| What    | Elo only (or a 50/50 guess)                                     | Supervised classifier (Logistic Regression / XGBoost) |
+| Purpose | Reference point — "how accurate we'd be if we learned nothing" | A genuinely trained, evaluable model                  |
+| Input   | Only elo_diff                                                   | All features (section 5)                              |
+
+> **Result (see `04_model_training.ipynb`):** Logistic Regression was selected as the final model — Accuracy 0.759, AUC 0.841, Brier 0.161 on a temporal test split, marginally ahead of tuned XGBoost (Accuracy 0.752, AUC 0.840) and well ahead of the Elo-only baseline (Accuracy 0.603, AUC 0.628).
 
 ---
 
@@ -96,8 +104,8 @@ This is the model's **only learned task**. Everything else is just a different a
 
 ## 9. Open questions (to be determined later)
 
-- [ ] The exact evaluation metric and the reasoning for it
-- [ ] The initial Elo value and the K-coefficient
+- [X] The exact evaluation metric and the reasoning for it
+- [X] The initial Elo value and the K-coefficient
 - [ ] How to incorporate margin of victory into the Elo/model
 - [ ] The fuzzy matching library and threshold
 - [ ] The "bye" system for N ≠ 2^n cases
