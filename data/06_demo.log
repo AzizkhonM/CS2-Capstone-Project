@@ -1,0 +1,11 @@
+2026-07-30 17:12:36,902 - Loaded model/data: 331 teams
+2026-07-30 17:12:43,383 - Built snapshots for 331 teams
+2026-07-30 17:12:43,511 - Resolved 'Spirit' -> 'Spirit' (score=100.0)
+2026-07-30 17:12:43,513 - Resolved 'MyRandomTestTeam123' -> 'None' (score=60.00000000000001)
+2026-07-30 17:12:43,514 - Resolved 'G2' -> 'G2' (score=100.0)
+2026-07-30 17:12:43,515 - Resolved 'Vitality' -> 'Vitality' (score=100.0)
+2026-07-30 17:12:43,515 - Resolved 'FaZe' -> 'FaZe' (score=100.0)
+2026-07-30 17:12:43,516 - Resolved 'MOUZ' -> 'MOUZ' (score=100.0)
+2026-07-30 17:12:43,516 - Resolved 'Liquid' -> 'Liquid' (score=100.0)
+2026-07-30 17:12:43,516 - Resolved 'Astralis' -> 'Astralis' (score=100.0)
+2026-07-30 17:12:44,226 - Demo run: 8 teams, seeding: ['Vitality', 'Spirit', 'MOUZ', 'Liquid', 'G2', 'MyRandomTestTeam123', 'FaZe', 'Astralis']
