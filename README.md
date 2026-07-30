@@ -55,8 +55,6 @@ Full technical rationale: `docs/Column_Analysis.md` and `docs/Project_Brief.md`.
 | Logistic Regression                                                   | Interpretable baseline classifier |
 | XGBoost                                                               | Main model                        |
 
-_Detailed comparison to be added after `04_model_training.ipynb` is run._
-
 ## Final model and justification
 
 Logistic Regression was selected as the final model. On a temporal (time-based) held-out test split, it achieved Accuracy 0.759, AUC 0.841, and Brier score 0.161 — marginally outperforming a hyperparameter-tuned XGBoost (best: Accuracy 0.752, AUC 0.840, Brier 0.162) across all metrics, while remaining simpler and more interpretable (see coefficient analysis in `notebooks/04_model_training.ipynb`). Both substantially outperformed the Elo-only baseline.
