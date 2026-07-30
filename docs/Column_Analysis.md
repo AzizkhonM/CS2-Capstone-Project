@@ -370,6 +370,16 @@ Every major rating system in the world (chess — Elo, League of Legends — Tru
 
 Sanity check confirmed Elo behaves correctly: mean `elo_diff` was **+32.4** when team1 won vs **-8.97** when team1 lost — higher Elo teams win more often, as expected. Final Elo ranged 1285–1949 (mean 1500, std 94.4); top teams (Vitality, Spirit, MOUZ) matched real-world 2024–2025 rankings.
 
+### 6.6 Final model evaluation results (`05_evaluation.ipynb`)
+
+Beyond the Elo baseline sanity check (6.5), the final trained model (Logistic Regression) was evaluated on held-out, temporal test data:
+
+- **Calibration:** Brier score 0.1612. Confidence-bucket accuracy rises monotonically from 57.8% (0–20% predicted confidence) to 96.6% (80–100% confidence) — a strong sign the model's probabilities are meaningfully calibrated, not just arbitrary scores.
+- **Prediction symmetry:** mean |P(A,B) + P(B,A) − 1| = 0.040, max = 0.126 across a 30-pair sample. Not perfectly symmetric by construction; a symmetry-averaging correction is applied at inference time.
+- **Sparse vs. established teams:** contrary to the original hypothesis, sparse-history matches (<10 games, n=223) showed *higher* accuracy (93.3%) than established matchups (≥10 games, n=1176, 72.6%) — likely because sparse-history teams often face clear skill mismatches (predictable outcomes), while established-vs-established matches are closer, harder-to-call contests.
+
+Full results: `results/evaluation_summary.csv`, `results/calibration_curve.png`.
+
 ---
 
 ## 7. Model architecture — full pipeline

@@ -1,0 +1,9 @@
+2026-07-30 16:12:59,590 - Loaded data (6989, 59), model, 20 features
+2026-07-30 16:13:14,744 - Rebuilt features: 20 | Train: (5590, 20) | Test: (1399, 20)
+2026-07-30 16:13:18,878 - Recomputed scaled test predictions using loaded model
+2026-07-30 16:13:21,429 - Brier score: 0.1612
+2026-07-30 16:13:58,036 - Symmetry error mean=0.0399, max=0.1257
+2026-07-30 16:14:13,137 - Sparse-history accuracy: 0.9327 (n=223)
+2026-07-30 16:14:13,137 - Established accuracy: 0.7262 (n=1176)
+2026-07-30 16:14:34,573 - Error analysis by event_type and confidence bucket computed
+2026-07-30 16:14:54,243 - Saved evaluation_summary.csv: {'brier_score': np.float64(0.1611937615190473), 'symmetry_error_mean': np.float64(0.03992215448080868), 'symmetry_error_max': 0.1256635690832658, 'sparse_accuracy': np.float64(0.9327354260089686), 'established_accuracy': np.float64(0.7261904761904762)}

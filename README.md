@@ -72,17 +72,13 @@ robustness measures (see `docs/Project_Brief.md`, Section 12).
 | Logistic Regression | **0.7591** | **0.8409** | **0.1612** |
 | XGBoost             | 0.7520           | 0.8387           | 0.1622           |
 
-**Additional robustness checks (Phase 9):**
+**Additional robustness checks (Phase 9 — completed, see `notebooks/05_evaluation.ipynb`):**
 
-- Calibration: reliability diagram comparing predicted probability vs
-  observed win rate.
-- Symmetry: P(A beats B) + P(B beats A) should ≈ 1 for a sample of
-  team pairs, tested in both input orders.
-- New/sparse-history teams: model output evaluated separately for teams
-  with few or no historical matches.
+- **Calibration:** Brier score 0.1612 (consistent with training). Confidence-bucket accuracy increases monotonically from 57.8% (0–20% confidence) to 96.6% (80–100% confidence) — a strong sign the model's probabilities are meaningfully calibrated.
+- **Symmetry:** mean |P(A,B) + P(B,A) − 1| = 0.040, max = 0.126 across a 30-pair sample. Small but non-zero — a symmetry correction (`p_final = (p_ab + (1 - p_ba)) / 2`) is applied at inference time (see `06_demo.ipynb`).
+- **Sparse/new-history teams:** counter to the original hypothesis, sparse-history matches (<10 games, n=223) showed *higher* accuracy (93.3%) than established matchups (≥10 games, n=1176, 72.6%) — likely because sparse-history teams often face clear skill mismatches (predictable outcomes), while established-vs-established matches are closer contests. See Known Limitations for the revised interpretation.
 
-_Results to be filled in after `05_evaluation.ipynb` is run. See `results/`
-for plots and error analysis once available._
+Full results: `results/evaluation_summary.csv`, `results/calibration_curve.png`.
 
 ## Implementation notes (found during model training)
 
@@ -153,38 +149,19 @@ Bracket:
 
 ## Known limitations
 
-- ~76 of 140 dataset columns (player/team average stats) are static
-  career averages and are excluded from modeling — see `data/README.md`.
-- Team-name resolution relies on fuzzy matching; ambiguous/unmatched
-  names fall back to a default Elo (1500).
-- Teams with sparse match history produce less reliable estimates; this
-  has not yet been empirically validated and will be explicitly tested
-  (Phase 9) rather than only assumed.
-- Roster changes are not explicitly tracked (static player stats are
-  excluded), so Elo may not reflect a team's current lineup if a major
-  roster change occurred shortly before the tournament.
-- Predicted probabilities are not guaranteed to be well-calibrated
-  out of the box; calibration will be checked (reliability diagram /
-  Brier score) before probabilities are relied on for seeding.
-- Prediction symmetry (P(A beats B) + P(B beats A) ≈ 1) is not
-  guaranteed by model construction and will be explicitly tested and
-  corrected if violated.
-- Scope is limited to a static, publicly available historical dataset —
-  no real-time HLTV integration.
+- ~76 of 140 dataset columns (player/team average stats) are static career averages and are excluded from modeling — see `data/README.md`.
+- Team-name resolution relies on fuzzy matching; ambiguous/unmatched names fall back to a default Elo (1500).
+- **(Revised after testing)** Sparse match history does not reduce prediction *accuracy* — empirically, sparse-history matches were *easier* to predict (93.3% vs 72.6% for established matchups), likely due to clearer skill gaps. However, the underlying Elo/feature *estimates* for such teams remain less statistically grounded (fewer observations), so a confidence flag is still recommended for transparency, even though it did not translate into lower observed accuracy.
+- Roster changes are not explicitly tracked (static player stats are excluded), so Elo may not reflect a team's current lineup if a major roster change occurred shortly before the tournament.
+- Predicted probabilities are reasonably calibrated (Brier 0.1612; confidence-bucket accuracy rises monotonically 57.8%→96.6%), though not perfectly — see evaluation results above.
+- Prediction symmetry showed a small but measurable violation (mean error 4%, max 12.6%); a symmetry-averaging correction is applied at inference time rather than relying on raw model output.
+- Scope is limited to a static, publicly available historical dataset — no real-time HLTV integration.
 
 ## Responsible AI considerations
 
-Data consists of public professional esports match results (HLTV.org,
-via Kaggle) with no personal or private information beyond public player
-aliases. No special privacy or licensing restrictions apply beyond
-standard attribution.
+Data consists of public professional esports match results (HLTV.org, via Kaggle) with no personal or private information beyond public player aliases. No special privacy or licensing restrictions apply beyond standard attribution.
 
-**Fairness:** the model will be less reliable for teams with sparse match
-history, introducing a bias against newer/under-represented teams; this
-is surfaced via a confidence flag rather than hidden. The model does not
-capture recent roster changes. These limitations are disclosed, and the
-tool is intended as decision support for organizers, not a sole or final
-authority for seeding disputes.
+**Fairness:** empirical testing did not find lower accuracy for sparse-history teams (see Evaluation results) — the originally hypothesized bias was not observed in outcome accuracy. However, sparse-history *feature estimates* (Elo, form) remain statistically less grounded due to fewer observations, so a confidence flag is still surfaced for transparency. The model does not capture recent roster changes. These limitations are disclosed, and the tool is intended as decision support for organizers, not a sole or final authority for seeding disputes.
 
 ## Repository structure
 
@@ -210,7 +187,4 @@ authority for seeding disputes.
 
 ## Trained model
 
-The trained model (`models/logreg_model.pkl`) and computed Elo ratings
-(`models/elo_ratings.csv`) are not committed to this repository — see
-`.gitignore`. Regenerate them by running the notebooks in order
-(01 → 05), or download pre-trained artifacts from [link, if hosted].
+The trained model (`models/logreg_model.pkl`) and computed Elo ratings (`models/elo_ratings.csv`) are not committed to this repository — see `.gitignore`. Regenerate them by running the notebooks in order (01 → 05), or download pre-trained artifacts from [link, if hosted].
