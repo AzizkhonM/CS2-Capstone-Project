@@ -19,3 +19,5 @@ mlruns/
 
 # OS
 .DS_Store
+
+converter.py
