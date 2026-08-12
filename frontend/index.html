@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CS2 Power Seeding</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=DM+Sans:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <link rel="icon" type="image/svg+xml"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%230B0E14'/><polygon points='6,6 26,6 26,20 20,26 6,26' fill='%23C9FF3D'/></svg>">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <div class="wrap">
+
+    <header>
+      <div class="brand">
+        <div class="mark"></div>
+        <h1>CS2 Power Seeding</h1>
+      </div>
+      <div class="sub">Model v1 · Logistic Regression</div>
+    </header>
+
+    <section class="hero">
+      <div class="eyebrow">Match outcome predictor / seeding engine</div>
+      <h2>Pick the field.<br>Get a bracket you can defend.</h2>
+      <p>Select 4, 8, or 16 teams. The model computes a pairwise win probability for every possible matchup, averages
+        each team's results into a power score, then seeds the bracket so the strongest teams meet last — with a reason
+        for every placement.</p>
+    </section>
+
+    <div class="section-label">01 / Select teams</div>
+
+    <div class="controls">
+      <div class="chip-group" id="size-chips">
+        <button class="chip active" data-size="4">4</button>
+        <button class="chip" data-size="8">8</button>
+        <button class="chip" data-size="16">16</button>
+      </div>
+      <input class="search" id="search" type="text" placeholder="Search teams…">
+      <div class="format-toggle chip-group">
+        <button class="chip active" data-format="lan">LAN</button>
+        <button class="chip" data-format="online">Online</button>
+      </div>
+    </div>
+
+    <div class="count-badge" id="count-badge">Selected: <b>0</b> / 4</div>
+    <br>
+    <div class="team-grid" id="team-grid"></div>
+
+    <button class="btn-primary" id="generate-btn" disabled>
+      <span class="label">Generate seeding</span>
+      <span class="spinner"></span>
+    </button>
+    <div class="hint">First request may take up to a minute — the server wakes up from sleep.</div>
+
+    <div class="error-box" id="error-box"></div>
+
+    <div id="results">
+      <div class="section-label">02 / Power ranking</div>
+      <div class="seed-list" id="seed-list"></div>
+
+      <div class="section-label">03 / Bracket</div>
+      <div class="bracket" id="bracket"></div>
+    </div>
+
+    <footer>CS2 Power Seeding — capstone project. Predictions are decision support, not a final authority.</footer>
+  </div>
+
+  <script>
+    // ============================================================
+    // CONFIG — set your Render API URL here
+    // ============================================================
+    const API_URL = "https://cs2-capstone-project.onrender.com";
+
+    let ALL_TEAMS = [];       // [{name, logo}]
+    let SELECTED = new Set();
+    let TARGET_SIZE = 4;
+    let FORMAT = "lan";
+    let SEARCH_TERM = "";
+
+    const grid = document.getElementById('team-grid');
+    const countBadge = document.getElementById('count-badge');
+    const genBtn = document.getElementById('generate-btn');
+    const errorBox = document.getElementById('error-box');
+
+    // ---------- Load teams + logos ----------
+    async function loadTeams() {
+      try {
+        const logoMap = await fetch('team_logos.json').then(r => r.json());
+        ALL_TEAMS = Object.entries(logoMap).map(([name, logo]) => ({
+          name,
+          logo: 'logos/' + logo
+        }));
+        renderGrid();
+      } catch (e) {
+        showError("Could not load team_logos.json. Make sure it's in the same folder as index.html.");
+      }
+    }
+
+    function renderGrid() {
+      const term = SEARCH_TERM.toLowerCase();
+      grid.innerHTML = '';
+      ALL_TEAMS
+        .filter(t => t.name.toLowerCase().includes(term))
+        .forEach(t => {
+          const card = document.createElement('div');
+          card.className = 'team-card' + (SELECTED.has(t.name) ? ' selected' : '');
+          card.tabIndex = 0;
+          card.innerHTML = `<img src="${t.logo}" draggable="false" alt="" loading="lazy"><span>${t.name}</span>`;
+          card.addEventListener('click', () => toggleTeam(t.name));
+          card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleTeam(t.name); } });
+          grid.appendChild(card);
+        });
+    }
+
+    function toggleTeam(name) {
+      if (SELECTED.has(name)) {
+        SELECTED.delete(name);
+      } else {
+        if (SELECTED.size >= TARGET_SIZE) return;
+        SELECTED.add(name);
+      }
+      renderGrid();
+      updateCount();
+    }
+
+    function updateCount() {
+      countBadge.innerHTML = `Selected: <b>${SELECTED.size}</b> / ${TARGET_SIZE}`;
+      genBtn.disabled = SELECTED.size !== TARGET_SIZE;
+    }
+
+    // ---------- Controls ----------
+    document.getElementById('size-chips').addEventListener('click', e => {
+      if (!e.target.dataset.size) return;
+      document.querySelectorAll('#size-chips .chip').forEach(c => c.classList.remove('active'));
+      e.target.classList.add('active');
+      TARGET_SIZE = parseInt(e.target.dataset.size, 10);
+      if (SELECTED.size > TARGET_SIZE) {
+        SELECTED = new Set([...SELECTED].slice(0, TARGET_SIZE));
+        renderGrid();
+      }
+      updateCount();
+    });
+
+    document.querySelector('.format-toggle').addEventListener('click', e => {
+      if (!e.target.dataset.format) return;
+      document.querySelectorAll('.format-toggle .chip').forEach(c => c.classList.remove('active'));
+      e.target.classList.add('active');
+      FORMAT = e.target.dataset.format;
+    });
+
+    document.getElementById('search').addEventListener('input', e => {
+      SEARCH_TERM = e.target.value;
+      renderGrid();
+    });
+
+    // ---------- Generate ----------
+    genBtn.addEventListener('click', async () => {
+      hideError();
+      genBtn.classList.add('loading');
+      genBtn.disabled = true;
+      try {
+        const res = await fetch(`${API_URL}/predict`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ teams: [...SELECTED], tournament_type: FORMAT })
+        });
+        const data = await res.json();
+        if (data.error) {
+          showError(data.error);
+        } else {
+          renderResults(data);
+        }
+      } catch (e) {
+        showError("Request failed. The server may be waking up from sleep — wait 30s and try again.");
+      } finally {
+        genBtn.classList.remove('loading');
+        genBtn.disabled = false;
+      }
+    });
+
+    function showError(msg) { errorBox.textContent = msg; errorBox.classList.add('show'); }
+    function hideError() { errorBox.classList.remove('show'); }
+
+    function logoFor(name) {
+      const t = ALL_TEAMS.find(t => t.name === name);
+      return t ? t.logo : '';
+    }
+
+    // ---------- Render seeding + bracket ----------
+    function renderResults(data) {
+      const results = document.getElementById('results');
+      results.classList.add('show');
+
+      const seedList = document.getElementById('seed-list');
+      seedList.innerHTML = '';
+      const maxScore = Math.max(...data.seeding.map(s => s.power_score));
+      data.seeding.forEach(s => {
+        const row = document.createElement('div');
+        row.className = 'seed-row' + (s.seed === 1 ? ' top' : '');
+        const pct = Math.round((s.power_score / maxScore) * 100);
+        row.innerHTML = `
+      <div class="rank">${String(s.seed).padStart(2, '0')}</div>
+      <img src="${logoFor(s.team)}" alt="">
+      <div class="name">${s.team}</div>
+      <div class="score">${(s.power_score * 100).toFixed(1)}%
+        <div class="score-bar"><i style="width:${pct}%"></i></div>
+      </div>`;
+        seedList.appendChild(row);
+      });
+
+      renderBracket(data.rounds || data.bracket);
+    }
+
+    function renderBracket(rounds) {
+      const container = document.getElementById('bracket');
+      container.innerHTML = '';
+      if (!rounds) return;
+
+      const roundsArr = Array.isArray(rounds) && rounds[0] && rounds[0].matches ? rounds : [{ round_name: 'Round 1', matches: rounds }];
+
+      roundsArr.forEach(round => {
+        const col = document.createElement('div');
+        col.className = 'bracket-round';
+        const title = document.createElement('div');
+        title.className = 'round-title';
+        title.textContent = round.round_name || `Round ${round.round}`;
+        col.appendChild(title);
+
+        round.matches.forEach(m => {
+          const card = document.createElement('div');
+          card.className = 'match-card';
+
+          const slotA = teamSlot(m.team_a, m.is_bye);
+          const slotB = m.is_bye ? '' : teamSlot(m.team_b, false);
+          card.innerHTML = slotA + slotB;
+          col.appendChild(card);
+
+          if (!m.is_bye && m.team_a && m.team_b) {
+            const btn = document.createElement('button');
+            btn.className = 'explain-btn';
+            btn.textContent = 'Why this seed?';
+            const box = document.createElement('div');
+            box.className = 'explain-box';
+            btn.addEventListener('click', () => {
+              box.classList.toggle('show');
+              if (!box.dataset.filled) {
+                box.innerHTML = `<b>${m.team_a}</b> vs <b>${m.team_b}</b> — placement is based on each team's average predicted win probability across all opponents in this field (power score), not a single head-to-head guess.`;
+                box.dataset.filled = '1';
+              }
+            });
+            col.appendChild(btn);
+            col.appendChild(box);
+          }
+        });
+        container.appendChild(col);
+      });
+    }
+
+    function teamSlot(name, isBye) {
+      if (!name) {
+        return `<div class="match-slot tbd">TBD</div>`;
+      }
+      if (name.startsWith('Winner of')) {
+        return `<div class="match-slot tbd">${name}</div>`;
+      }
+      const logo = logoFor(name);
+      const img = logo ? `<img src="${logo}" alt="">` : '';
+      return `<div class="match-slot${isBye ? ' bye' : ''}">${img}${name}${isBye ? ' (BYE)' : ''}</div>`;
+    }
+
+    // ---------- Init ----------
+    updateCount();
+    loadTeams();
+  </script>
+
+</body>
+
+</html>
