@@ -131,6 +131,23 @@ def generate_seeding(team_names, event_type='lan'):
     return ranked, pairwise, resolved_names
 
 
+def generate_seed_order(n):
+    """
+    Returns the correct slot order for a single-elimination bracket
+    of size n (must be a power of 2), such that seed 1 and seed 2
+    can only meet in the final, seeds 1-4 only meet in semis, etc.
+    """
+    seeds = [1, 2]
+    while len(seeds) < n:
+        p = len(seeds) * 2
+        new_seeds = []
+        for s in seeds:
+            new_seeds.append(s)
+            new_seeds.append(p + 1 - s)
+        seeds = new_seeds
+    return seeds
+
+
 # ============================================================
 # Bracket builder — clear, self-describing bye handling
 # ============================================================
@@ -140,20 +157,24 @@ def build_bracket(ranked_teams):
     while next_pow2 < n:
         next_pow2 *= 2
 
-    seeded = [t for t, _ in ranked_teams] + [None] * (next_pow2 - n)
+    seed_order = generate_seed_order(next_pow2)  # ← YANGI
 
-    # 1-raund
+    # Har bir "seed raqami" ga mos jamoa nomini beriladi (yo'q bo'lsa None = BYE)
+    seeded_by_position = [None] * next_pow2
+    for idx, seed_num in enumerate(seed_order):
+        if seed_num <= n:
+            seeded_by_position[idx] = ranked_teams[seed_num - 1][0]
+
     round1 = []
     for i in range(next_pow2 // 2):
-        team_a = seeded[i]
-        team_b = seeded[next_pow2 - 1 - i]
+        team_a = seeded_by_position[i * 2]
+        team_b = seeded_by_position[i * 2 + 1]
         is_bye = team_a is None or team_b is None
         round1.append({
             "match_number": i + 1,
             "team_a": team_a,
             "team_b": team_b,
             "is_bye": is_bye,
-            # BYE bo'lsa, g'olib avtomatik ma'lum
             "winner": (team_a or team_b) if is_bye else None,
         })
 
