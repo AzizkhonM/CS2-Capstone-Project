@@ -2,7 +2,7 @@
 
 **Student:** Azizkhon Muzaffarov
 **Project track:** Individual Project Track (Tabular)
-**Status:** In progress — see `PROJECT_STATUS.md`
+**Status:** Done
 
 ## Problem statement
 
