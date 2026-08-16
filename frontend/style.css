@@ -635,3 +635,48 @@ footer {
     transition: none !important;
   }
 }
+
+.seed-row.has-tooltip { cursor: pointer; position: relative; }
+
+.conf-flag {
+  color: var(--red);
+  font-size: 12px;
+  margin-left: 4px;
+  cursor: help;
+}
+
+.matchup-tooltip {
+  display: none;
+  position: absolute;
+  left: 0;
+  top: 100%;
+  margin-top: 4px;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-left: 2px solid var(--blue);
+  padding: 10px 14px;
+  z-index: 10;
+  min-width: 220px;
+  box-shadow: 0 8px 24px -8px rgba(0,0,0,0.6);
+}
+
+.seed-row.has-tooltip:hover .matchup-tooltip,
+.seed-row.tooltip-open .matchup-tooltip {
+  display: block;
+}
+
+.matchup-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  padding: 4px 0;
+  color: var(--muted);
+}
+.matchup-line img { width: 16px; height: 16px; object-fit: contain; }
+.matchup-line span { margin-left: auto; color: var(--blue); font-weight: 600; }
+
+@media (hover: none) {
+  /* Touch devices: hover doesn't apply, rely on click/.tooltip-open only */
+  .seed-row.has-tooltip:hover .matchup-tooltip { display: none; }
+}

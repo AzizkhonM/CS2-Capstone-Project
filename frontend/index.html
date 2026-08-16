@@ -201,17 +201,37 @@
       const seedList = document.getElementById('seed-list');
       seedList.innerHTML = '';
       const maxScore = Math.max(...data.seeding.map(s => s.power_score));
+
       data.seeding.forEach(s => {
         const row = document.createElement('div');
         row.className = 'seed-row' + (s.seed === 1 ? ' top' : '');
         const pct = Math.round((s.power_score / maxScore) * 100);
+        const confBadge = s.confidence === 'low'
+          ? `<span class="conf-flag" title="Limited match history — estimate may be less reliable">⚠</span>`
+          : '';
+
         row.innerHTML = `
       <div class="rank">${String(s.seed).padStart(2, '0')}</div>
       <img src="${logoFor(s.team)}" alt="">
-      <div class="name">${s.team}</div>
+      <div class="name">${s.team} ${confBadge}</div>
       <div class="score">${(s.power_score * 100).toFixed(1)}%
         <div class="score-bar"><i style="width:${pct}%"></i></div>
       </div>`;
+
+        // --- Matchup tooltip/expand ---
+        const opponents = (data.matchup_details && data.matchup_details[s.team]) || [];
+        if (opponents.length) {
+          const tooltip = document.createElement('div');
+          tooltip.className = 'matchup-tooltip';
+          tooltip.innerHTML = opponents
+            .map(o => `<div class="matchup-line"><img src="${logoFor(o.opponent)}" alt="">${o.opponent}<span>${(o.win_probability * 100).toFixed(1)}%</span></div>`)
+            .join('');
+          row.appendChild(tooltip);
+          row.classList.add('has-tooltip');
+
+          row.addEventListener('click', () => row.classList.toggle('tooltip-open'));
+        }
+
         seedList.appendChild(row);
       });
 
