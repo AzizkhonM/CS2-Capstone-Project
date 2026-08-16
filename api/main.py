@@ -24,6 +24,8 @@ with open('models/logreg_model.pkl', 'rb') as f:
     logreg = pickle.load(f)
 with open('models/feature_list.pkl', 'rb') as f:
     final_features = pickle.load(f)
+with open('models/team_match_counts.pkl', 'rb') as f:
+    team_match_counts = pickle.load(f)
 
 elo_ratings = pd.read_csv('models/elo_ratings.csv').set_index('team_name')['elo_rating'].to_dict()
 all_teams = sorted(elo_ratings.keys())
@@ -106,6 +108,13 @@ def predict_win_prob(team_a, team_b, event_type='lan'):
     p_ba = logreg.predict_proba(X_ba_scaled)[0][1]
 
     return (p_ab + (1 - p_ba)) / 2
+
+def get_confidence_flag(team_name):
+    """Returns 'low' if the team has sparse history, 'high' otherwise, 'unknown' if never seen."""
+    count = team_match_counts.get(team_name)
+    if count is None:
+        return "unknown"
+    return "low" if count < 10 else "high"
 
 
 def compute_power_scores(team_names, resolved_names, event_type='lan'):
@@ -250,8 +259,13 @@ def predict(req: SeedRequest):
     return {
         "resolved_names": resolved_names,
         "seeding": [
-            {"seed": i + 1, "team": team, "power_score": round(score, 3)}
-            for i, (team, score) in enumerate(ranked)
-        ],
+        {
+            "seed": i + 1,
+            "team": team,
+            "power_score": round(score, 3),
+            "confidence": get_confidence_flag(resolved_names.get(team, team))
+        }
+        for i, (team, score) in enumerate(ranked)
+    ],
         "bracket": bracket,
     }

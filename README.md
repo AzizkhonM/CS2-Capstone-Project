@@ -6,12 +6,7 @@
 
 ## Problem statement
 
-CS2 tournament organizers (including my own tournament management website)
-currently seed teams into brackets manually and subjectively, with no
-objective way to justify placements. This project builds a supervised ML
-model that predicts the win probability between two CS2 teams, used both
-for direct match-outcome prediction and to generate explainable,
-data-driven tournament seeding for N teams (4, 8, 16, or arbitrary size).
+CS2 tournament organizers (including my own tournament management website) currently seed teams into brackets manually and subjectively, with no objective way to justify placements. This project builds a supervised ML model that predicts the win probability between two CS2 teams, used both for direct match-outcome prediction and to generate explainable, data-driven tournament seeding for N teams (4, 8, 16, or arbitrary size).
 
 ## ML task type
 
@@ -19,11 +14,8 @@ Supervised binary classification — predict P(team1 beats team2).
 
 ## Dataset source
 
-`cs2_newestcombinedmatches.csv` — professional CS2 match data, originally
-scraped from HLTV.org and published on
-[Kaggle](https://www.kaggle.com/datasets/griffindesroches/cs2-hltv-professional-match-statistics-dataset).
-7,033 matches, 140 columns, 2024-05-15 to 2025-10-16. See `data/README.md`
-for full details, known issues, and download instructions.
+`cs2_newestcombinedmatches.csv` — professional CS2 match data, originally scraped from HLTV.org and published on [Kaggle](https://www.kaggle.com/datasets/griffindesroches/cs2-hltv-professional-match-statistics-dataset).
+7,033 matches, 140 columns, 2024-05-15 to 2025-10-16. See `data/README.md` for full details, known issues, and download instructions.
 
 ## Project pipeline / system architecture
 
@@ -61,10 +53,7 @@ Logistic Regression was selected as the final model. On a temporal (time-based) 
 
 ## Evaluation metrics and results
 
-**Metrics:** Accuracy and ROC-AUC on a temporal (time-based) train/test
-split — not random split, to avoid look-ahead bias. Additionally,
-calibration (Brier score) and prediction symmetry are checked as
-robustness measures (see `docs/Project_Brief.md`, Section 12).
+**Metrics:** Accuracy and ROC-AUC on a temporal (time-based) train/test split — not random split, to avoid look-ahead bias. Additionally, calibration (Brier score) and prediction symmetry are checked as robustness measures (see `docs/Project_Brief.md`, Section 12).
 
 | Model               | Accuracy         | AUC              | Brier score      |
 | ------------------- | ---------------- | ---------------- | ---------------- |
@@ -94,8 +83,7 @@ cd cs2-seeding-capstone
 pip install -r requirements.txt
 ```
 
-Download the dataset from the Kaggle link in `data/README.md` and place
-it at `data/cs2_newestcombinedmatches.csv`.
+Download the dataset from the Kaggle link in `data/README.md` and place it at `data/cs2_newestcombinedmatches.csv`.
 
 ## Training / fine-tuning instructions
 
@@ -111,13 +99,12 @@ notebooks/05_evaluation.ipynb      → results/
 
 ## Demo and inference run instructions
 
-**Colab-first:** open `notebooks/06_demo.ipynb` in Google Colab (badge/link
-to be added), run all cells. It loads `models/logreg_model.pkl` and
-`models/elo_ratings.csv`, then accepts N team names and returns a seeded
-bracket.
+**Two ways to run inference:**
 
-_No separate application/API is used for this project — inference is
-demonstrated entirely through the Colab notebook._
+1. **Notebook (source of truth):** open `notebooks/06_demo.ipynb` in Google Colab or locally, run all cells. It loads `models/logreg_model.pkl` and `models/elo_ratings.csv`, then accepts N team names and returns a seeded bracket.
+2. **Live web app (built on top of the same model):** a FastAPI backend (`api/main.py`, deployed on Render) exposes the trained model as a `/predict` endpoint, and a static frontend (`frontend/index.html`, `frontend/result.html`) lets a tournament organizer pick teams from a browser and get an explained bracket. Live demo: [link to be added].
+
+The notebook remains the authoritative, fully documented version of the pipeline; the web app is a usability layer on top of it for real-world use on my tournament platform.
 
 ## Example input and output
 
@@ -147,10 +134,15 @@ Bracket:
   Spirit vs Liquid
 ```
 
+## Post-training fixes (found after initial evaluation)
+
+- **Seeding algorithm bug:** the initial bracket-pairing logic grouped seeds incorrectly (e.g. seed 1 and seed 2 could meet in the semifinal instead of only in the final). Fixed with a standard recursive tournament-seeding algorithm (`generate_seed_order`), verified for 4/8/16-team fields.
+- **Cross-environment reproducibility:** all notebooks were updated to auto-detect the repo root and work identically in Google Colab and local Jupyter/VS Code, without manual path edits. Verified via a fresh clone on a separate machine.
+
 ## Known limitations
 
 - ~76 of 140 dataset columns (player/team average stats) are static career averages and are excluded from modeling — see `data/README.md`.
-- Team-name resolution relies on fuzzy matching; ambiguous/unmatched names fall back to a default Elo (1500).
+- Team-name resolution relies on fuzzy matching; ambiguous/unmatched names fall back to a default Elo (1500). A visible confidence flag for sparse-history/unmatched teams is planned but not yet implemented in the web app.
 - **(Revised after testing)** Sparse match history does not reduce prediction *accuracy* — empirically, sparse-history matches were *easier* to predict (93.3% vs 72.6% for established matchups), likely due to clearer skill gaps. However, the underlying Elo/feature *estimates* for such teams remain less statistically grounded (fewer observations), so a confidence flag is still recommended for transparency, even though it did not translate into lower observed accuracy.
 - Roster changes are not explicitly tracked (static player stats are excluded), so Elo may not reflect a team's current lineup if a major roster change occurred shortly before the tournament.
 - Predicted probabilities are reasonably calibrated (Brier 0.1612; confidence-bucket accuracy rises monotonically 57.8%→96.6%), though not perfectly — see evaluation results above.
@@ -174,7 +166,10 @@ Data consists of public professional esports match results (HLTV.org, via Kaggle
 ├── docs/                   — Project Brief, column analysis, ML formulation notes
 ├── models/                 — trained model (.pkl) and Elo ratings (not committed, see .gitignore)
 ├── data/                   — data/README.md (source, license, column dictionary)
-└── results/                — evaluation metrics, plots, error analysis
+├── results/                — evaluation metrics, plots, error analysis
+├── src/                    — shared feature-building logic (src/features.py)
+├── api/                    — FastAPI backend (main.py), deployed on Render
+└── frontend/                — static web demo (index.html, result.html, style.css, team logos)
 ```
 
 ## Documentation
