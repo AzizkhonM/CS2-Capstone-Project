@@ -106,7 +106,7 @@ This is the model's **only learned task**. Everything else is just a different a
 
 - [X] The exact evaluation metric and the reasoning for it
 - [X] The initial Elo value and the K-coefficient
-- [ ] How to incorporate margin of victory into the Elo/model
-- [ ] The fuzzy matching library and threshold
-- [ ] The "bye" system for N ≠ 2^n cases
-- [ ] The exact formula for Bradley-Terry aggregation
+- [X] How to incorporate margin of victory into the Elo/model
+- [X] The fuzzy matching library and threshold
+- [X] The "bye" system for N ≠ 2^n cases
+- [X] The exact formula for Bradley-Terry aggregation

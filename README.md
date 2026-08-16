@@ -102,7 +102,7 @@ notebooks/05_evaluation.ipynb      → results/
 **Two ways to run inference:**
 
 1. **Notebook (source of truth):** open `notebooks/06_demo.ipynb` in Google Colab or locally, run all cells. It loads `models/logreg_model.pkl` and `models/elo_ratings.csv`, then accepts N team names and returns a seeded bracket.
-2. **Live web app (built on top of the same model):** a FastAPI backend (`api/main.py`, deployed on Render) exposes the trained model as a `/predict` endpoint, and a static frontend (`frontend/index.html`, `frontend/result.html`) lets a tournament organizer pick teams from a browser and get an explained bracket. Live demo: [link to be added].
+2. **Live web app (built on top of the same model):** a FastAPI backend (`api/main.py`, deployed on Render) exposes the trained model as a `/predict` endpoint, and a static frontend (`frontend/index.html`) lets a tournament organizer pick teams from a browser and get an explained bracket. Live demo: [link to be added].
 
 The notebook remains the authoritative, fully documented version of the pipeline; the web app is a usability layer on top of it for real-world use on my tournament platform.
 
