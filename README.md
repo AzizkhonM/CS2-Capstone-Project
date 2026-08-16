@@ -6,6 +6,8 @@
 
 🔴 **[Live demo](https://cs2-seeding.vercel.app/)** — try it now, no installation needed.
 
+![Live demo](presets/cs2-seeder.gif)
+
 ## Problem statement
 
 CS2 tournament organizers (including my own tournament management website) currently seed teams into brackets manually and subjectively, with no objective way to justify placements. This project builds a supervised ML model that predicts the win probability between two CS2 teams, used both for direct match-outcome prediction and to generate explainable, data-driven tournament seeding for N teams (4, 8, 16, or arbitrary size).
