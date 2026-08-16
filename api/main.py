@@ -255,6 +255,16 @@ def predict(req: SeedRequest):
 
     ranked, pairwise, resolved_names = generate_seeding(req.teams, req.tournament_type)
     bracket = build_bracket(ranked)
+    
+    matchup_details = {}
+    for team in req.teams:
+        opponents = []
+        for (a, b), p_ab in pairwise.items():
+            if team == a:
+                opponents.append({"opponent": b, "win_probability": round(p_ab, 3)})
+            elif team == b:
+                opponents.append({"opponent": a, "win_probability": round(1 - p_ab, 3)})
+        matchup_details[team] = opponents
 
     return {
         "resolved_names": resolved_names,
