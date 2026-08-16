@@ -203,36 +203,63 @@
       const maxScore = Math.max(...data.seeding.map(s => s.power_score));
 
       data.seeding.forEach(s => {
-        const row = document.createElement('div');
-        row.className = 'seed-row' + (s.seed === 1 ? ' top' : '');
+        const item = document.createElement('div');
+        item.className = 'seed-item' + (s.seed === 1 ? ' top' : '');
+
         const pct = Math.round((s.power_score / maxScore) * 100);
         const confBadge = s.confidence === 'low'
           ? `<span class="conf-flag" title="Limited match history — estimate may be less reliable">⚠</span>`
           : '';
-
-        row.innerHTML = `
-      <div class="rank">${String(s.seed).padStart(2, '0')}</div>
-      <img src="${logoFor(s.team)}" alt="">
-      <div class="name">${s.team} ${confBadge}</div>
-      <div class="score">${(s.power_score * 100).toFixed(1)}%
-        <div class="score-bar"><i style="width:${pct}%"></i></div>
-      </div>`;
-
-        // --- Matchup tooltip/expand ---
         const opponents = (data.matchup_details && data.matchup_details[s.team]) || [];
-        if (opponents.length) {
-          const tooltip = document.createElement('div');
-          tooltip.className = 'matchup-tooltip';
-          tooltip.innerHTML = opponents
-            .map(o => `<div class="matchup-line"><img src="${logoFor(o.opponent)}" alt="">${o.opponent}<span>${(o.win_probability * 100).toFixed(1)}%</span></div>`)
-            .join('');
-          row.appendChild(tooltip);
-          row.classList.add('has-tooltip');
 
-          row.addEventListener('click', () => row.classList.toggle('tooltip-open'));
+        item.innerHTML = `
+      <div class="seed-row" role="button" tabindex="0" aria-expanded="false">
+        <div class="rank">${String(s.seed).padStart(2, '0')}</div>
+        <img src="${logoFor(s.team)}" alt="">
+        <div class="name">${s.team} ${confBadge}</div>
+        <div class="score">${(s.power_score * 100).toFixed(1)}%
+          <div class="score-bar"><i style="width:${pct}%"></i></div>
+        </div>
+        <div class="chevron">▾</div>
+      </div>
+      <div class="seed-panel">
+        <div class="seed-panel-inner">
+          ${opponents.map(o => `
+            <div class="matchup-line">
+              <img src="${logoFor(o.opponent)}" alt="">
+              <span class="opp-name">${o.opponent}</span>
+              <div class="opp-bar"><i style="width:${(o.win_probability * 100).toFixed(1)}%"></i></div>
+              <span class="opp-pct">${(o.win_probability * 100).toFixed(1)}%</span>
+            </div>`).join('')}
+        </div>
+      </div>
+    `;
+
+        const row = item.querySelector('.seed-row');
+        const panel = item.querySelector('.seed-panel');
+        const inner = item.querySelector('.seed-panel-inner');
+
+        function toggle() {
+          const isOpen = item.classList.contains('open');
+          if (isOpen) {
+            panel.style.height = panel.scrollHeight + 'px'; // set current height first
+            requestAnimationFrame(() => { panel.style.height = '0px'; });
+            item.classList.remove('open');
+            row.setAttribute('aria-expanded', 'false');
+          } else {
+            item.classList.add('open');
+            panel.style.height = inner.scrollHeight + 'px';
+            row.setAttribute('aria-expanded', 'true');
+          }
         }
+        panel.addEventListener('transitionend', () => {
+          if (item.classList.contains('open')) panel.style.height = 'auto';
+        });
 
-        seedList.appendChild(row);
+        row.addEventListener('click', toggle);
+        row.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
+
+        seedList.appendChild(item);
       });
 
       renderBracket(data.rounds || data.bracket);
