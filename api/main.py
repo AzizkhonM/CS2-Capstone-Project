@@ -277,5 +277,6 @@ def predict(req: SeedRequest):
         }
         for i, (team, score) in enumerate(ranked)
     ],
+        "matchup_details": matchup_details,
         "bracket": bracket,
     }
