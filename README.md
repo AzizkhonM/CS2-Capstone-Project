@@ -4,6 +4,8 @@
 **Project track:** Individual Project Track (Tabular)
 **Status:** Done
 
+🔴 **[Live demo](https://cs2-seeding.vercel.app/)** — try it now, no installation needed.
+
 ## Problem statement
 
 CS2 tournament organizers (including my own tournament management website) currently seed teams into brackets manually and subjectively, with no objective way to justify placements. This project builds a supervised ML model that predicts the win probability between two CS2 teams, used both for direct match-outcome prediction and to generate explainable, data-driven tournament seeding for N teams (4, 8, 16, or arbitrary size).
@@ -99,12 +101,13 @@ notebooks/05_evaluation.ipynb      → results/
 
 ## Demo and inference run instructions
 
-**Two ways to run inference:**
+**Live demo:** [https://cs2-seeding.vercel.app/](https://cs2-seeding.vercel.app/) — enter 4/8/16 teams and get back a seeded, explainable bracket in the browser. No setup required.
 
-1. **Notebook (source of truth):** open `notebooks/06_demo.ipynb` in Google Colab or locally, run all cells. It loads `models/logreg_model.pkl` and `models/elo_ratings.csv`, then accepts N team names and returns a seeded bracket.
-2. **Live web app (built on top of the same model):** a FastAPI backend (`api/main.py`, deployed on Render) exposes the trained model as a `/predict` endpoint, and a static frontend (`frontend/index.html`) lets a tournament organizer pick teams from a browser and get an explained bracket. Live demo: [link to be added].
+> **Note:** the backend is hosted on Render's free tier and may take 30–60 seconds to respond on the first request after a period of inactivity ("cold start"). Subsequent requests are fast.
 
-The notebook remains the authoritative, fully documented version of the pipeline; the web app is a usability layer on top of it for real-world use on my tournament platform.
+The frontend (`frontend/`) is deployed on **Vercel** and calls a **FastAPI** backend (`api/`) deployed on **Render**: [https://cs2-capstone-project.onrender.com/](https://cs2-capstone-project.onrender.com/)
+
+**Colab (offline / reproducibility):** alternatively, open `notebooks/06_demo.ipynb` in Google Colab, run all cells. It loads `models/logreg_model.pkl` and `models/elo_ratings.csv`, then accepts N team names and returns a seeded bracket — useful for verifying results without depending on the hosted API.
 
 ## Example input and output
 
@@ -169,7 +172,7 @@ Data consists of public professional esports match results (HLTV.org, via Kaggle
 ├── results/                — evaluation metrics, plots, error analysis
 ├── src/                    — shared feature-building logic (src/features.py)
 ├── api/                    — FastAPI backend (main.py), deployed on Render
-└── frontend/                — static web demo (index.html, result.html, style.css, team logos)
+└── frontend/               — static web demo (index.html, result.html, style.css, team logos)
 ```
 
 ## Documentation
