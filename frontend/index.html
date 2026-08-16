@@ -50,7 +50,6 @@
     </div>
 
     <div class="count-badge" id="count-badge">Selected: <b>0</b> / 4</div>
-    <br>
     <div class="team-grid" id="team-grid"></div>
 
     <button class="btn-primary" id="generate-btn" disabled>
@@ -215,7 +214,7 @@
         item.innerHTML = `
       <div class="seed-row" role="button" tabindex="0" aria-expanded="false">
         <div class="rank">${String(s.seed).padStart(2, '0')}</div>
-        <img src="${logoFor(s.team)}" alt="">
+        <img draggable="false" src="${logoFor(s.team)}" alt="">
         <div class="name">${s.team} ${confBadge}</div>
         <div class="score">${(s.power_score * 100).toFixed(1)}%
           <div class="score-bar"><i style="width:${pct}%"></i></div>
@@ -226,7 +225,7 @@
         <div class="seed-panel-inner">
           ${opponents.map(o => `
             <div class="matchup-line">
-              <img src="${logoFor(o.opponent)}" alt="">
+              <img src="${logoFor(o.opponent)}" draggable="false" alt="">
               <span class="opp-name">${o.opponent}</span>
               <div class="opp-bar"><i style="width:${(o.win_probability * 100).toFixed(1)}%"></i></div>
               <span class="opp-pct">${(o.win_probability * 100).toFixed(1)}%</span>
@@ -318,7 +317,7 @@
         return `<div class="match-slot tbd">${name}</div>`;
       }
       const logo = logoFor(name);
-      const img = logo ? `<img src="${logo}" alt="">` : '';
+      const img = logo ? `<img src="${logo}" draggable="false" alt="">` : '';
       return `<div class="match-slot${isBye ? ' bye' : ''}">${img}${name}${isBye ? ' (BYE)' : ''}</div>`;
     }
 

@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CS2 Power Seeding — Capstone Showcase</title>
+<meta name="description" content="A machine learning system that predicts CS2 match outcomes and generates explainable tournament seeding.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' fill='%230B0E14'/><polygon points='6,6 26,6 26,20 20,26 6,26' fill='%23C9FF3D'/></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0B0E14;
+    --surface: #12161F;
+    --surface-2: #191F2C;
+    --line: #262D3D;
+    --text: #E8ECF1;
+    --muted: #6B7280;
+    --lime: #C9FF3D;
+    --blue: #4FA8FF;
+    --red: #FF4D6A;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', monospace;
+  }
+  h1, h2, h3, .display {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    margin: 0;
+  }
+  a { color: inherit; }
+  ::selection { background: var(--lime); color: #0B0E14; }
+
+  /* ---------- Top bar ---------- */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 22px 5vw;
+    border-bottom: 1px solid var(--line);
+  }
+  .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+  .brand .mark {
+    width: 12px; height: 12px;
+    background: var(--lime);
+    clip-path: polygon(0 0, 100% 0, 100% 70%, 70% 100%, 0 100%);
+  }
+  .brand span { font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 15px; letter-spacing: 0.08em; }
+  .topbar nav { display: flex; gap: 28px; font-size: 12px; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
+  .topbar nav a { text-decoration: none; position: relative; padding-bottom: 3px; }
+  .topbar nav a::after {
+    content: ''; position: absolute; left: 0; bottom: 0; width: 0; height: 1px;
+    background: var(--lime); transition: width .25s ease;
+  }
+  .topbar nav a:hover::after { width: 100%; }
+  .topbar nav a:hover { color: var(--text); }
+
+  /* ---------- Hero ---------- */
+  .hero {
+    padding: 8vw 5vw 6vw;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  .hero .eyebrow {
+    color: var(--lime);
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 18px;
+  }
+  .hero h1 {
+    font-size: clamp(38px, 7vw, 88px);
+    line-height: 0.98;
+    max-width: 1000px;
+  }
+  .hero h1 em {
+    font-style: normal;
+    color: var(--lime);
+  }
+  .hero .lead {
+    font-family: 'DM Sans', monospace;
+    color: var(--muted);
+    font-size: clamp(14px, 1.4vw, 17px);
+    max-width: 640px;
+    line-height: 1.7;
+    margin-top: 28px;
+  }
+  .hero .cta-row {
+    display: flex;
+    gap: 16px;
+    margin-top: 40px;
+    flex-wrap: wrap;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 14px;
+    padding: 15px 28px;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .btn-fill {
+    background: var(--lime);
+    color: #0B0E14;
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 14px 100%, 0 calc(100% - 14px));
+  }
+  .btn-fill:hover { background: #d9ff6e; }
+  .btn-outline {
+    background: none;
+    border: 1px solid var(--line);
+    color: var(--text);
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 14px 100%, 0 calc(100% - 14px));
+  }
+  .btn-outline:hover { color: var(--blue); }
+
+  /* ---------- Stat ticker ---------- */
+  .ticker-wrap {
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    overflow: hidden;
+    background: var(--surface);
+  }
+  .ticker {
+    display: flex;
+    gap: 0;
+    animation: ticker 32s linear infinite;
+    width: max-content;
+  }
+  @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+  .tick-item {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    padding: 16px 40px;
+    border-right: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  .tick-item b { font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 18px; color: var(--lime); }
+  .tick-item span { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+
+  /* ---------- Section shell ---------- */
+  section.block { padding: 7vw 5vw; max-width: 1400px; margin: 0 auto; }
+  .kicker {
+    display: flex; align-items: center; gap: 14px;
+    color: var(--muted); font-size: 12px; letter-spacing: 0.2em; text-transform: uppercase;
+    margin-bottom: 40px;
+  }
+  .kicker::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+  .kicker .num { color: var(--lime); }
+
+  /* ---------- Split: problem ---------- */
+  .split { display: grid; grid-template-columns: 1fr 1.4fr; gap: 6vw; align-items: start; }
+  .split h2 { font-size: clamp(26px, 3.2vw, 42px); line-height: 1.05; }
+  .split .copy { color: var(--muted); font-size: 14px; line-height: 1.8; }
+  .split .copy b { color: var(--text); font-weight: 600; }
+
+  /* ---------- Numbered feature list (how it works) ---------- */
+  .feature-list { display: flex; flex-direction: column; }
+  .feature-row {
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    gap: 28px;
+    padding: 32px 0;
+    border-top: 1px solid var(--line);
+  }
+  .feature-row:last-child { border-bottom: 1px solid var(--line); }
+  .feature-row .idx {
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    font-size: 34px;
+    color: var(--surface-2);
+    -webkit-text-stroke: 1px var(--line);
+  }
+  .feature-row h3 { font-size: 19px; margin-bottom: 10px; color: var(--text); }
+  .feature-row p { color: var(--muted); font-size: 13.5px; line-height: 1.75; max-width: 640px; margin: 0; }
+  .feature-row p b { color: var(--blue); font-weight: 600; }
+
+  /* ---------- Metric strip ---------- */
+  .metric-strip {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    border: 1px solid var(--line);
+  }
+  .metric-cell {
+    padding: 30px 24px;
+    border-right: 1px solid var(--line);
+  }
+  .metric-cell:last-child { border-right: none; }
+  .metric-cell .val { font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 36px; color: var(--lime); }
+  .metric-cell .lbl { color: var(--muted); font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 8px; }
+
+  /* ---------- Limitation / honesty block ---------- */
+  .honesty {
+    border-left: 2px solid var(--blue);
+    background: var(--surface);
+    padding: 36px 40px;
+  }
+  .honesty p { color: var(--muted); font-size: 14px; line-height: 1.8; max-width: 820px; margin: 0; }
+  .honesty p + p { margin-top: 16px; }
+  .honesty b { color: var(--text); font-weight: 600; }
+  .honesty .tag { color: var(--red); font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 14px; display: block; }
+
+  /* ---------- Closing CTA ---------- */
+  .closing {
+    text-align: center;
+    padding: 8vw 5vw 10vw;
+  }
+  .closing h2 { font-size: clamp(30px, 5vw, 56px); max-width: 780px; margin: 0 auto 30px; line-height: 1.05; }
+  .closing p { color: var(--muted); font-size: 14px; max-width: 480px; margin: 0 auto 36px; line-height: 1.7; }
+
+  footer {
+    border-top: 1px solid var(--line);
+    padding: 28px 5vw;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  @media (max-width: 860px) {
+    .split { grid-template-columns: 1fr; gap: 24px; }
+    .metric-strip { grid-template-columns: repeat(2, 1fr); }
+    .metric-cell:nth-child(2) { border-right: none; }
+    .metric-cell { border-bottom: 1px solid var(--line); }
+    .topbar nav { display: none; }
+    .feature-row { grid-template-columns: 40px 1fr; gap: 16px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ticker { animation: none; }
+  }
+</style>
+</head>
+<body>
+
+  <div class="topbar">
+    <a class="brand" href="#top">
+      <div class="mark"></div>
+      <span>CS2 Power Seeding</span>
+    </a>
+    <nav>
+      <a href="#problem">Problem</a>
+      <a href="#how">How it works</a>
+      <a href="#results">Results</a>
+      <a href="#limits">Limitations</a>
+    </nav>
+  </div>
+
+  <section class="hero" id="top">
+    <div class="eyebrow">CS2 Esports Analytics · Capstone Project</div>
+    <h1>Pick the field.<br>Get a bracket<br>you can <em>defend</em>.</h1>
+    <p class="lead">A machine learning system that predicts win probability between any two CS2 teams and turns that into a fully explained tournament bracket — built for a real tournament management platform, not just a classroom exercise.</p>
+    <div class="cta-row">
+      <a class="btn btn-fill" href="https://www.theazizkhon.uz/" target="_blank" rel="noopener">Open Live Demo →</a>
+      <a class="btn btn-outline" href="https://github.com/AzizkhonM/CS2-Capstone-Project" target="_blank" rel="noopener">View Source on GitHub</a>
+    </div>
+  </section>
+
+  <div class="ticker-wrap">
+    <div class="ticker" id="ticker"></div>
+  </div>
+
+  <section class="block" id="problem">
+    <div class="kicker"><span class="num">01</span> Problem / User</div>
+    <div class="split">
+      <h2>Seeding is guesswork. It shouldn't be.</h2>
+      <div class="copy">
+        <p>CS2 tournament organizers — including my own tournament management platform — currently seed brackets manually and subjectively, with no data-backed way to justify placements. This causes strong teams to face each other in early rounds by chance, and leaves organizers unable to defend decisions when teams dispute their seed.</p>
+        <p><b>The model reaches 84.1% AUC</b> on real, unseen matches — but the point isn't the number. It's that every seed now comes with a reason an organizer can point to.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="how">
+    <div class="kicker"><span class="num">02</span> How it works</div>
+    <div class="feature-list">
+      <div class="feature-row">
+        <div class="idx">01</div>
+        <div>
+          <h3>Self-built Elo, verified correct</h3>
+          <p>Computes a time-ordered Elo rating from <b>7,033 historical matches</b> — sanity-checked to confirm teams win 32.4 points more often than they lose, on average, before it's trusted as a signal.</p>
+        </div>
+      </div>
+      <div class="feature-row">
+        <div class="idx">02</div>
+        <div>
+          <h3>19 dynamic features, not 140 raw columns</h3>
+          <p>Combines Elo with recent form, head-to-head history, per-map win rates, and LAN/Online performance — after discovering and removing <b>76 "static" columns</b> that silently leaked no real signal.</p>
+        </div>
+      </div>
+      <div class="feature-row">
+        <div class="idx">03</div>
+        <div>
+          <h3>Every pair, not just one guess</h3>
+          <p>Predicts a win probability for every possible pair among the selected teams, then averages each team's results into a <b>Power Score</b> used for seeding.</p>
+        </div>
+      </div>
+      <div class="feature-row">
+        <div class="idx">04</div>
+        <div>
+          <h3>Live, not just a notebook</h3>
+          <p>Served through a <b>FastAPI backend</b> deployed on Render, rendered in a custom animated frontend — a working application, not only a Colab cell.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="results">
+    <div class="kicker"><span class="num">03</span> Results</div>
+    <div class="metric-strip">
+      <div class="metric-cell">
+        <div class="val">84.1%</div>
+        <div class="lbl">AUC, unseen test data</div>
+      </div>
+      <div class="metric-cell">
+        <div class="val">75.9%</div>
+        <div class="lbl">Accuracy vs. 60.3% Elo-only</div>
+      </div>
+      <div class="metric-cell">
+        <div class="val">7,033</div>
+        <div class="lbl">Real HLTV matches, 2024–25</div>
+      </div>
+      <div class="metric-cell">
+        <div class="val">+21pt</div>
+        <div class="lbl">AUC gain over Elo baseline</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="limits">
+    <div class="kicker"><span class="num">04</span> Limitation</div>
+    <div class="honesty">
+      <span class="tag">Documented, not hidden</span>
+      <p>The model is a <b>decision-support tool, not a final authority</b> — organizers stay in control. Roster changes aren't tracked in real time, and teams with sparse match history get a visible confidence flag.</p>
+      <p>Interestingly, testing showed sparse-history matchups were actually <b>easier</b> to predict (93.3% accuracy) than matchups between established teams (72.6%) — a result that contradicted my original assumption and reshaped how the limitation is documented.</p>
+    </div>
+  </section>
+
+  <section class="block" id="roadmap">
+    <div class="kicker"><span class="num">05</span> Model Roadmap</div>
+    <div class="split">
+      <h2>One pair in. One probability out.</h2>
+      <div class="copy">
+        <p>The model is <b>not multi-team</b> — it's a pairwise classifier. It only ever compares <b>two teams at a time</b>, and everything below happens inside that single comparison, step by step.</p>
+      </div>
+    </div>
+    <div class="feature-list">
+      <div class="feature-row">
+        <div class="idx">01</div>
+        <div>
+          <h3>Input — a single pair, 19 numbers</h3>
+          <p>The model never sees team names. It receives <b>19 numeric features</b> — each one a difference between the two teams, computed as <b>team1_value − team2_value</b> (e.g. <b>elo_diff = 1948 − 1500 = 448</b>): elo_diff, past3_diff, head2head_percentage_diff, head2head_freq_diff, mirage_diff, inferno_diff, nuke_diff, dust2_diff, overpass_diff, train_diff, ancient_diff, vertigo_diff, anubis_diff, wins_diff, losses_diff, totalwinrate_diff, online_winrate_diff, lan_winrate_diff and overall_winrate_diff.</p>
+        </div>
+      </div>
+      <div class="feature-row">
+        <div class="idx">02</div>
+        <div>
+          <h3>Scaling</h3>
+          <p>All 19 values pass through a <b>StandardScaler</b>. Raw scales aren't comparable — elo_diff can range roughly −600...+600 while totalwinrate_diff sits in −1...+1 — so every feature is normalized before the model is allowed to weigh them against each other.</p>
+        </div>
+      </div>
+      <div class="feature-row">
+        <div class="idx">03</div>
+        <div>
+          <h3>The model itself — Logistic Regression</h3>
+          <p>Each feature gets a learned coefficient (weight): <b>z = w1·x1 + w2·x2 + ... + w19·x19 + bias</b>. The model simply combines the 19 numbers linearly, then passes the result through a sigmoid: <b>P(team1 wins) = 1 / (1 + e^−z)</b>.</p>
+        </div>
+      </div>
+      <div class="feature-row">
+        <div class="idx">04</div>
+        <div>
+          <h3>Output — a single number</h3>
+          <p>The pipeline ends with one value, e.g. <b>P(team1 beats team2) = 0.68</b>. The model never declares a winner — it only ever returns a probability.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="closing">
+    <h2>Built end-to-end, solo — and stress-tested until it broke.</h2>
+    <p>From auditing 140 raw dataset columns and catching a tournament-bracket seeding bug (top seeds were meeting before the final) to deploying a working API and reproducing the entire pipeline from a fresh clone on a second machine.</p>
+    <a class="btn btn-fill" href="https://www.theazizkhon.uz/" target="_blank" rel="noopener">Open Live Demo →</a>
+  </section>
+
+  <footer>
+    <span>CS2 Power Seeding — Capstone Project, AI/ML Fundamentals</span>
+    <span>Model v1 · Logistic Regression · MLflow-tracked</span>
+  </footer>
+
+<script>
+const stats = [
+  ["7,033", "matches analyzed"],
+  ["140", "raw columns audited"],
+  ["76", "static columns removed"],
+  ["84.1%", "AUC on unseen data"],
+  ["331", "teams tracked"],
+  ["19", "dynamic features"],
+  ["93.3%", "accuracy on sparse-history matchups"],
+  ["+21pt", "AUC over Elo baseline"],
+];
+const ticker = document.getElementById('ticker');
+const items = [...stats, ...stats].map(([v, l]) => `<div class="tick-item"><b>${v}</b><span>${l}</span></div>`).join('');
+ticker.innerHTML = items;
+</script>
+
+</body>
+</html>
